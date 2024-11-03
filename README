@@ -1,5 +1,12 @@
+python -m venv .venv
+
+source ./venv/Scripts/activate
+
 pip install -r requirement.txt
 
 test.py for webcam
 
 main.py for Tello drone
+
+
+deactivate
