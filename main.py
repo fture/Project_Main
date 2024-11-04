@@ -1,7 +1,7 @@
-import cv2
-import time
 from djitellopy import Tello
 from cvzone.HandTrackingModule import HandDetector
+import cv2
+import time
 
 # 初始化并连接无人机
 tello = Tello()
@@ -9,8 +9,10 @@ tello.connect()
 print(f"电池电量: {tello.get_battery()}%")
 tello.streamon()
 
-# 初始化摄像头和手部识别
-cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)
+# 获取无人机的视频流
+frame_read = tello.get_frame_read()
+
+# 初始化手部识别
 detector = HandDetector(maxHands=1)
 
 # 为检查悬停状态时间初始化变量
@@ -35,13 +37,11 @@ def control_drone(gesture):
 
 # 主循环
 while True:
-    success, img = cap.read()
-    if not success:
-        break
-    
+    img = frame_read.frame  # 从无人机获取当前帧
+
     # 手部识别
     hands, img = detector.findHands(img)
-    
+
     if hands:
         hand = hands[0]
         fingers = detector.fingersUp(hand)
@@ -74,14 +74,14 @@ while True:
             if time.time() - hover_start_time > 5:
                 control_drone("land")
                 break  # 着陆后退出循环
-    
+
     # 显示结果图像
-    cv2.imshow("Image", img)
+    cv2.imshow("Tello Camera", img)
     key = cv2.waitKey(1) & 0xFF
     if key == ord('q'):
         break
 
 # 无人机着陆并退出
 tello.land()
-cap.release()
+tello.end()  # 确保正确断开连接
 cv2.destroyAllWindows()
